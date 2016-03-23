@@ -97,11 +97,16 @@ func (tx *Transaction) DeleteFlows(flow string, args ...interface{}) {
 	tx.ofctlExec("del-flows", tx.bridge, flow)
 }
 
-// DumpFlows dumps the flow table for the bridge and returns it as an array of
+// DumpFlowsFilter dumps the flow table for the bridge and returns it as an array of
 // strings, one per flow. Since this function has a return value, it also
-// returns an error immediately if an error occurs.
-func (tx *Transaction) DumpFlows() ([]string, error) {
-	out, err := tx.ofctlExec("dump-flows", tx.bridge)
+// returns an error immediately if an error occurs. The arguments are
+// passed to fmt.Sprintf().
+func (tx *Transaction) DumpFlowsFilter(flow string, args ...interface{}) ([]string, error) {
+	if len(args) > 0 {
+		flow = fmt.Sprintf(flow, args...)
+	}
+
+	out, err := tx.ofctlExec("dump-flows", tx.bridge, flow)
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +119,13 @@ func (tx *Transaction) DumpFlows() ([]string, error) {
 		}
 	}
 	return flows, nil
+}
+
+// DumpFlows dumps the flow table for the bridge and returns it as an array of
+// strings, one per flow. Since this function has a return value, it also
+// returns an error immediately if an error occurs.
+func (tx *Transaction) DumpFlows() ([]string, error) {
+	return tx.DumpFlowsFilter("")
 }
 
 // EndTransaction ends an OVS transaction and returns any error that occurred
